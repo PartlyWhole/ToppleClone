@@ -1,0 +1,238 @@
+# <ProjectName> — Project Conventions
+
+## Language & Engine
+
+- Godot 4.x, <renderer> renderer
+- GDScript (no C#)
+
+## Display Settings
+
+- Viewport: <width>x<height>
+- Window: <width>x<height> (<N>x integer scale)
+- Stretch mode: `viewport`, scale: `integer`
+- Default texture filter: `Nearest`
+- Pixel snapping: enabled (`snap_2d_transforms_to_pixel`, `snap_2d_vertices_to_pixel`)
+
+## Folder Structure
+
+```
+addons/         — vendored third-party (GUT) + first-party EditorPlugins
+assets/         — shared textures, fonts (cross-feature)
+autoload/       — Events, GameState, AudioManager, <others>
+                  (registered in this order)
+docs/           — plans, decisions (ADRs), brainstorms, solutions
+features/       — feature folders — each owns its scripts, scenes,
+                  resources, textures, shaders
+main/           — main.tscn + main.gd (the run/main_scene)
+systems/        — cross-feature RefCounted helpers and service Nodes
+                  that aren't owned by a single feature
+tests/          — GUT unit tests (gut -gdir=res://tests/unit -gexit)
+```
+
+**Inclusion criteria for `systems/`**: If a file would have to live in
+at least two `features/<x>/` folders, it belongs in `systems/`.
+
+**Components live with their host entity, not by class role.** A cannon
+lives in `features/ship/components/` even if cannonballs are in
+`features/weapons/`, because cannons attach to ship entities.
+
+## GDScript Conventions
+
+### Static typing
+
+- All variables, parameters, and return types must be typed.
+- `@export var` slots are typed; component `setup()` args are typed.
+- **Explicit casts after `is` checks.** GDScript does NOT narrow types
+  after `if x is SomeType`. Cast with `var typed := x as SomeType`.
+- Set `UNTYPED_DECLARATION`, `UNSAFE_PROPERTY_ACCESS`,
+  `UNSAFE_METHOD_ACCESS`, and `UNSAFE_CALL_ARGUMENT` to Error in
+  Project Settings > Debug > GDScript.
+
+### Component pattern
+
+- Components are `Node` subclasses under an entity root, one verb each.
+- **Exception**: components whose behavior depends on the entity's 2D
+  transform chain MUST `extends Node2D`. Plain-`Node` parents silently
+  strand `CanvasItem` children at world origin.
+- Components emit signals upward to the entity root; never reach
+  sideways to siblings.
+- **Default-OFF**: every component calls `set_physics_process(false)`
+  and `set_process(false)` in `_ready()` unless it proves it needs
+  ticking.
+
+### Member ordering
+
+Follow GDScript style guide: class_name/extends/docstring, signals,
+enums, constants, @export, public vars, _private vars, @onready,
+virtual methods (_ready, _process), signal callbacks, public methods,
+private methods, inner classes. **gdlint does NOT check member order —
+code review is the only gate.**
+
+### Assertions on @export
+
+Every `@export var foo: <Type>` has a matching `assert(foo != null)` in
+`_ready()`. Same for `@onready` node references — validate in `_ready()`
+with clear messages.
+
+### Naming
+
+- `snake_case` for files, vars, functions
+- `PascalCase` for classes, nodes
+- `UPPER_SNAKE_CASE` for constants, enum values
+- `_prefix` for pseudo-private
+- `is_`/`can_`/`has_` for booleans
+- Past tense for signals (`damage_taken`, `health_changed`)
+- `StringName` for all enum-like Resource string fields and signal
+  parameters (`explosion_kind`, `sound_id`)
+- Avoid shadowing built-ins in signal/method parameters (don't use
+  `name`, `position`, `type` as parameter names)
+
+## Autoloads
+
+- Register autoloads as `.gd` with explicit `res://` paths, never
+  `.tscn` or `uid://`. A `.tscn` autoload causes Godot's parser to
+  infer the singleton as `Node`, breaking strict typing checks.
+- Events bus is registered FIRST. Other autoloads may reference it in
+  `_ready()` or later, but NOT at file scope.
+- No cross-autoload `preload()` at file scope — creates init-order
+  dependencies.
+
+## Resource Safety Doctrine
+
+Resources are **read-only templates**. Runtime state lives in Node
+`var`s, never on Resources.
+
+1. **No writes to fields on `@export var` Resources.** Transitive:
+   `stats.weapon_config.damage = 5` is banned.
+2. **`set_shader_parameter` on a shared Material is a write.** Either
+   `.duplicate()` the material per-instance in `_ready()`, or document
+   inline that the write is globally intended.
+3. **Curve / Gradient mutations banned.** No `curve.add_point()` on
+   an `@export`ed Curve.
+4. **`@export var foo: FooType`** with NO `preload()` default —
+   assigned via scene ExtResource slot.
+5. **Component .tscn files must not embed mutable sub-resources.**
+   Materials, Curves, Gradients are ExtResources from a feature's
+   own folder.
+6. **Hot-reload granularity**: components that re-read Resource fields
+   per frame live-update from inspector edits. Components that cache
+   values at setup time do NOT. This is a documented limitation.
+
+## Signal Bus Discipline
+
+The `Events` autoload carries cross-system events only.
+
+- **Components do NOT touch the `Events` autoload directly.** Entity
+  roots and service nodes are the only publishers. Components emit
+  signals upward to the entity root, which dispatches.
+- **Listener-owns-the-work principle**: signals with a single natural
+  receiver do NOT get an intermediate listener.
+- **Bus payloads MUST be typed.** No untyped Dictionary payloads.
+- **High-frequency signals are OK on the bus** — measure before
+  optimizing.
+
+## Scene File Safety
+
+- **Properties only, no structural changes to .tscn files.**
+- **Safe edits:** changing property values on existing nodes/sub-resources,
+  removing properties (reverts to default), adding properties to
+  existing entries.
+- **Never:** add/remove `[ext_resource]`, `[sub_resource]`, `[node]`,
+  or `[connection]` entries.
+- **Never:** edit base64-encoded `PackedByteArray` data or `uid` values.
+
+## Composition Rules
+
+- Composition over inheritance. Limit scene inheritance to one layer.
+- "Call down, signal up." Parents call methods on children. Children
+  emit signals. Siblings communicate through a shared parent.
+- `call_deferred()` required for tree mutations in `_ready()`.
+- Use `.call()` for duck-typed group methods (`get_nodes_in_group()`
+  returns `Array[Node]`).
+
+## Shader Conventions
+
+- **File naming**: `snake_case.gdshader`
+- **Uniform naming**: PascalCase
+- **Texture filter hints**: `filter_nearest` for player-visible
+  textures, `filter_linear` for noise/math inputs
+- **Deferred features**: comment with `// TODO(post-mvp):` and include
+  what to wire
+
+## Style additions
+
+- **`distance_squared_to`** preferred over `distance_to` when comparing
+  against a threshold (skip the `sqrt`).
+
+## Linting
+
+`addons/` is excluded from both linters. gdlint reads `gdlintrc` at
+the project root.
+
+```bash
+# formatting (skip addons/)
+find . -name "*.gd" -not -path "./addons/*" -not -path "./.git/*" \
+  -not -path "./.godot/*" -print0 \
+  | xargs -0 gdformat --check
+
+# style (gdlintrc handles excludes)
+gdlint .
+```
+
+Run both before committing.
+
+### Long preload paths
+
+Use the **two-step preload pattern** when an inline preload would
+exceed the line-length limit:
+
+```gdscript
+const _MAT_PATH: String = "res://features/water/shaders/material.tres"
+const BASE_MATERIAL: ShaderMaterial = preload(_MAT_PATH)
+```
+
+## Testing
+
+### Unit tests (GUT)
+
+GUT is vendored at `addons/gut/` and excluded from release exports.
+Tests live under `tests/unit/`. Run headless via:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . \
+  -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+```
+
+Test conventions:
+- `extends GutTest`
+- `const FooClass: GDScript = preload("res://...")` rather than
+  relying on `class_name`
+- `add_child_autofree(node)` for tests that need a SceneTree
+- `watch_signals(obj)` + `assert_signal_emitted(obj, name)` for
+  signal coverage
+
+### Visual / integration smoke
+
+Run project via MCP (`run_project` → `get_debug_output` →
+`stop_project`). Check for zero errors. Validate `.tres`/`.tscn` files
+when changed.
+
+**Pre-merge editor open**: open the editor GUI at least once before a
+final smoke run to refresh the UID-by-text-path map.
+
+## MCP & Documentation
+
+Use Context7 automatically for Godot API lookups — call
+`resolve-library-id` then `query-docs`.
+
+## Godot Compound Plugin
+
+The `godot-compound` plugin provides Godot-specific agents, skills,
+and commands via the `/gc:` namespace.
+
+- **Use `/gc:` commands** for Godot work: `/gc:plan`, `/gc:work`,
+  `/gc:review`, `/gc:compound`, `/gc:brainstorm`
+- Agent dispatch is controlled by `compound-engineering.local.md`
+  at the project root
+- **Do NOT run `/gc:setup`** — manually maintain
+  `compound-engineering.local.md` instead

@@ -1,0 +1,12 @@
+# Godot
+.godot/
+
+# Build output
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
