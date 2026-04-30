@@ -4,17 +4,17 @@ extends Node
 
 # Game flow
 signal game_started
-signal game_over(final_height: float)
+signal game_ended(is_win: bool, final_height: float)
 signal game_restarted
 
 # Tower events
-signal block_placed(block: Node2D, height: float)
 signal block_dropped(block: Node2D)
-signal tower_collapsed
-
-# Score
-signal score_changed(new_score: int)
+signal score_changed(new_height: int)
 signal high_score_beaten(new_high: int)
+
+# Player state
+signal hp_changed(new_hp: int)
+signal timer_updated(time_remaining: float)
 
 # UI
 signal ui_play_pressed

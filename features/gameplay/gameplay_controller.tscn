@@ -1,6 +1,16 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://features/gameplay/scripts/gameplay_controller.gd" id="1_script"]
+[ext_resource type="Script" path="res://features/gameplay/scripts/game_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://features/gameplay/scripts/game_manager.gd" id="3_manager"]
 
 [node name="GameplayController" type="Node2D"]
 script = ExtResource("1_script")
+
+[node name="BlockContainer" type="Node2D" parent="."]
+
+[node name="GameCamera" type="Camera2D" parent="."]
+script = ExtResource("2_camera")
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("3_manager")

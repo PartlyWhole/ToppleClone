@@ -6,6 +6,9 @@ signal drag_ended
 
 const BASE_MASS: float = 5.0
 const REFERENCE_AREA: float = 3600.0
+const WORLD_MIN_X: float = 20.0
+const WORLD_MAX_X: float = 700.0
+const FREEZE_AFTER_FRAMES: int = 60
 
 @export_group("Drag")
 @export var max_drag_speed: float = 600.0
@@ -31,6 +34,7 @@ var _drag_offset: Vector2 = Vector2.ZERO
 var _base_gravity_scale: float = 1.0
 var _polygon: PackedVector2Array = PackedVector2Array()
 var _rotate_dir: float = 0.0
+var _sleep_frames: int = 0
 
 
 func _ready() -> void:
@@ -39,8 +43,9 @@ func _ready() -> void:
 
 	add_to_group(&"tunable_blocks")
 	input_pickable = true
+	set_process_unhandled_input(false)
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
-	contact_monitor = true
+	contact_monitor = false
 	max_contacts_reported = 4
 	angular_damp = 5.0
 	linear_damp = 0.5
@@ -67,6 +72,13 @@ func _draw() -> void:
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if not _is_dragging:
+		if sleeping:
+			_sleep_frames += 1
+			if _sleep_frames >= FREEZE_AFTER_FRAMES:
+				freeze = true
+				return
+		else:
+			_sleep_frames = 0
 		var speed_sq: float = state.linear_velocity.length_squared()
 		if speed_sq > max_block_speed * max_block_speed:
 			state.linear_velocity = (state.linear_velocity * (max_block_speed / sqrt(speed_sq)))
@@ -74,15 +86,16 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 			state.angular_velocity, -max_angular_speed, max_angular_speed
 		)
 		return
+
 	var half: Vector2 = _bounding_size / 2.0
-	var viewport_size: Vector2 = get_viewport_rect().size
 	var target: Vector2 = get_global_mouse_position() + _drag_offset
-	target.x = clampf(target.x, half.x, viewport_size.x - half.x)
-	target.y = clampf(target.y, half.y, viewport_size.y - half.y)
+	target.x = clampf(target.x, WORLD_MIN_X + half.x, WORLD_MAX_X - half.x)
+
 	var desired: Vector2 = (target - global_position) / state.step
 	var desired_speed_sq: float = desired.length_squared()
 	if desired_speed_sq > max_drag_speed * max_drag_speed:
 		desired = desired * (max_drag_speed / sqrt(desired_speed_sq))
+
 	for i: int in state.get_contact_count():
 		var normal: Vector2 = state.get_contact_local_normal(i)
 		var push: float = desired.dot(normal)
@@ -90,6 +103,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 			var is_downward: bool = normal.y < downward_normal_threshold
 			var dampen: float = contact_dampen_downward if is_downward else contact_dampen_sideways
 			desired -= normal * push * (1.0 - dampen)
+
 	state.linear_velocity = desired
 	if _rotate_dir != 0.0:
 		state.angular_velocity = _rotate_dir * rotate_speed
@@ -117,11 +131,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_rotate_input()
 
 
+func get_bounding_size() -> Vector2:
+	return _bounding_size
+
+
+func wake_up() -> void:
+	freeze = false
+	_sleep_frames = 0
+
+
 func _start_drag() -> void:
+	if freeze:
+		wake_up()
 	_is_dragging = true
 	_drag_offset = global_position - get_global_mouse_position()
 	_base_gravity_scale = gravity_scale
 	gravity_scale = 0.0
+	contact_monitor = true
+	set_process_unhandled_input(true)
 	drag_started.emit()
 
 
@@ -129,6 +156,8 @@ func _stop_drag() -> void:
 	_is_dragging = false
 	gravity_scale = _base_gravity_scale
 	linear_velocity = Vector2.ZERO
+	contact_monitor = false
+	set_process_unhandled_input(false)
 	drag_ended.emit()
 
 
