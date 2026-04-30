@@ -5,7 +5,6 @@ enum State { MENU, PLAYING, WON, LOST, RESTARTING }
 
 const MAX_HP: int = 4
 const ROUND_TIME: float = 60.0
-const TARGET_HEIGHT: float = 600.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 
@@ -25,11 +24,13 @@ var _time_remaining: float = ROUND_TIME
 var _current_block: DraggableBlock = null
 var _scan_timer: float = 0.0
 var _last_displayed_seconds: int = -1
+var _tower_height: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 @onready var _camera: GameCamera = _find_camera()
 @onready var _block_container: Node2D = _find_block_container()
-@onready var _platform_surface_y: float = _find_platform_surface_y()
+@onready var _platform_surface_y: float = _find_parent_const("PLATFORM_SURFACE_Y", 1180.0)
+@onready var _target_height: float = _find_parent_const("TARGET_HEIGHT", 600.0)
 
 
 func _ready() -> void:
@@ -66,6 +67,7 @@ func _on_play_pressed() -> void:
 	_time_remaining = ROUND_TIME
 	_last_displayed_seconds = -1
 	_scan_timer = 0.0
+	_tower_height = 0.0
 	_transition_to(State.PLAYING)
 	Events.game_started.emit()
 	Events.hp_changed.emit(_hp)
@@ -85,37 +87,37 @@ func _transition_to(new_state: State) -> void:
 		State.PLAYING:
 			set_process(true)
 			_camera.set_process(true)
-			GameState.is_playing = true
 		State.WON:
 			set_process(false)
 			_camera.set_process(false)
-			GameState.is_playing = false
 			_freeze_all_blocks()
-			Events.game_ended.emit(true, _get_tower_height())
+			Events.game_ended.emit(true, _tower_height)
 		State.LOST:
 			set_process(false)
 			_camera.set_process(false)
-			GameState.is_playing = false
 			_freeze_all_blocks()
-			Events.game_ended.emit(false, _get_tower_height())
+			Events.game_ended.emit(false, _tower_height)
 		State.MENU:
 			set_process(false)
 			_camera.set_process(false)
-			GameState.is_playing = false
 		State.RESTARTING:
 			set_process(false)
 
 
 func _restart() -> void:
 	_transition_to(State.RESTARTING)
-	if is_instance_valid(_current_block):
-		_current_block = null
 	for child: Node in _block_container.get_children():
+		if child is DraggableBlock:
+			var block: DraggableBlock = child as DraggableBlock
+			block.input_pickable = false
+			block.set_process_unhandled_input(false)
 		child.queue_free()
+	_current_block = null
 	_hp = MAX_HP
 	_time_remaining = ROUND_TIME
 	_last_displayed_seconds = -1
 	_scan_timer = 0.0
+	_tower_height = 0.0
 	_camera.reset()
 	Events.game_restarted.emit()
 	_transition_to(State.MENU)
@@ -178,34 +180,21 @@ func _scan_tower() -> void:
 			break
 		if block == _current_block:
 			_current_block = null
+		Events.block_dropped.emit(block)
 		block.queue_free()
 		_hp -= 1
 		Events.hp_changed.emit(_hp)
-		Events.block_dropped.emit(block)
 		if _hp <= 0:
 			_transition_to(State.LOST)
 			return
 
-	var tower_height: float = _platform_surface_y - highest_y
-	if tower_height > 0.0:
+	_tower_height = _platform_surface_y - highest_y
+	if _tower_height > 0.0:
 		_camera.update_target(highest_y)
-		Events.score_changed.emit(int(tower_height))
-		GameState.current_height = tower_height
-		if tower_height >= TARGET_HEIGHT and _state == State.PLAYING:
+		Events.score_changed.emit(int(_tower_height))
+		GameState.current_height = _tower_height
+		if _tower_height >= _target_height and _state == State.PLAYING:
 			_transition_to(State.WON)
-
-
-func _get_tower_height() -> float:
-	var highest_y: float = _platform_surface_y
-	for child: Node in _block_container.get_children():
-		if not (child is DraggableBlock):
-			continue
-		var block: DraggableBlock = child as DraggableBlock
-		if not is_instance_valid(block):
-			continue
-		var top_y: float = block.position.y - block.get_bounding_size().y / 2.0
-		highest_y = minf(highest_y, top_y)
-	return _platform_surface_y - highest_y
 
 
 func _freeze_all_blocks() -> void:
@@ -236,8 +225,8 @@ func _find_block_container() -> Node2D:
 	return null
 
 
-func _find_platform_surface_y() -> float:
+func _find_parent_const(const_name: String, fallback: float) -> float:
 	var parent: Node = get_parent()
-	if parent != null and "PLATFORM_SURFACE_Y" in parent:
-		return parent.get("PLATFORM_SURFACE_Y") as float
-	return 1180.0
+	if parent != null and const_name in parent:
+		return parent.get(const_name) as float
+	return fallback
