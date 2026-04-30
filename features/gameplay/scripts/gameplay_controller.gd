@@ -1,3 +1,4 @@
+class_name GameplayController
 extends Node2D
 ## Sets up the play area: base platform, side walls, and finish line.
 

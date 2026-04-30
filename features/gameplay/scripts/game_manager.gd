@@ -27,10 +27,8 @@ var _last_displayed_seconds: int = -1
 var _tower_height: float = 0.0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
-@onready var _camera: GameCamera = _find_camera()
-@onready var _block_container: Node2D = _find_block_container()
-@onready var _platform_surface_y: float = _find_parent_const("PLATFORM_SURFACE_Y", 1180.0)
-@onready var _target_height: float = _find_parent_const("TARGET_HEIGHT", 600.0)
+@onready var _camera: GameCamera = $"../GameCamera" as GameCamera
+@onready var _block_container: Node2D = $"../BlockContainer" as Node2D
 
 
 func _ready() -> void:
@@ -86,21 +84,15 @@ func _transition_to(new_state: State) -> void:
 	match new_state:
 		State.PLAYING:
 			set_process(true)
-			_camera.set_process(true)
 		State.WON:
 			set_process(false)
-			_camera.set_process(false)
 			_freeze_all_blocks()
 			Events.game_ended.emit(true, _tower_height)
 		State.LOST:
 			set_process(false)
-			_camera.set_process(false)
 			_freeze_all_blocks()
 			Events.game_ended.emit(false, _tower_height)
-		State.MENU:
-			set_process(false)
-			_camera.set_process(false)
-		State.RESTARTING:
+		State.MENU, State.RESTARTING:
 			set_process(false)
 
 
@@ -118,7 +110,6 @@ func _restart() -> void:
 	_last_displayed_seconds = -1
 	_scan_timer = 0.0
 	_tower_height = 0.0
-	_camera.reset()
 	Events.game_restarted.emit()
 	_transition_to(State.MENU)
 
@@ -159,7 +150,7 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 
 
 func _scan_tower() -> void:
-	var highest_y: float = _platform_surface_y
+	var highest_y: float = GameplayController.PLATFORM_SURFACE_Y
 	var blocks_to_remove: Array[DraggableBlock] = []
 	for child: Node in _block_container.get_children():
 		if not (child is DraggableBlock):
@@ -169,7 +160,7 @@ func _scan_tower() -> void:
 			continue
 		if block == _current_block and block.freeze:
 			continue
-		if block.position.y > _platform_surface_y + DROP_THRESHOLD_Y:
+		if block.position.y > GameplayController.PLATFORM_SURFACE_Y + DROP_THRESHOLD_Y:
 			blocks_to_remove.append(block)
 			continue
 		var top_y: float = block.position.y - block.get_bounding_size().y / 2.0
@@ -188,12 +179,12 @@ func _scan_tower() -> void:
 			_transition_to(State.LOST)
 			return
 
-	_tower_height = _platform_surface_y - highest_y
+	_tower_height = GameplayController.PLATFORM_SURFACE_Y - highest_y
 	if _tower_height > 0.0:
 		_camera.update_target(highest_y)
 		Events.score_changed.emit(int(_tower_height))
 		GameState.current_height = _tower_height
-		if _tower_height >= _target_height and _state == State.PLAYING:
+		if _tower_height >= GameplayController.TARGET_HEIGHT and _state == State.PLAYING:
 			_transition_to(State.WON)
 
 
@@ -203,30 +194,3 @@ func _freeze_all_blocks() -> void:
 			var block: DraggableBlock = child as DraggableBlock
 			block.freeze = true
 			block.input_pickable = false
-
-
-func _find_camera() -> GameCamera:
-	var parent: Node = get_parent()
-	if parent == null:
-		return null
-	for child: Node in parent.get_children():
-		if child is GameCamera:
-			return child as GameCamera
-	return null
-
-
-func _find_block_container() -> Node2D:
-	var parent: Node = get_parent()
-	if parent == null:
-		return null
-	for child: Node in parent.get_children():
-		if child.name == &"BlockContainer" and child is Node2D:
-			return child as Node2D
-	return null
-
-
-func _find_parent_const(const_name: String, fallback: float) -> float:
-	var parent: Node = get_parent()
-	if parent != null and const_name in parent:
-		return parent.get(const_name) as float
-	return fallback

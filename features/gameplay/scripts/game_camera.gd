@@ -17,6 +17,9 @@ func _ready() -> void:
 	_target_y = _initial_y
 	position = Vector2(get_viewport_rect().size.x / 2.0, _initial_y)
 	enabled = true
+	Events.game_started.connect(_on_game_started)
+	Events.game_ended.connect(_on_game_ended)
+	Events.game_restarted.connect(_on_game_restarted)
 
 
 func _process(delta: float) -> void:
@@ -34,5 +37,18 @@ func get_target_y() -> float:
 
 
 func reset() -> void:
+	set_process(false)
 	_target_y = _initial_y
 	position.y = _initial_y
+
+
+func _on_game_started() -> void:
+	set_process(true)
+
+
+func _on_game_ended(_is_win: bool, _final_height: float) -> void:
+	set_process(false)
+
+
+func _on_game_restarted() -> void:
+	reset()
