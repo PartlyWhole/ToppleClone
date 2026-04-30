@@ -1,9 +1,6 @@
 extends Node2D
 ## Spawns draggable blocks and creates screen boundary walls.
 
-const _BLOCK_PATH: String = "res://features/blocks/draggable_block.tscn"
-const BlockScene: PackedScene = preload(_BLOCK_PATH)
-
 const WALL_THICKNESS: float = 20.0
 const VIEWPORT_SIZE: Vector2 = Vector2(720, 1280)
 const BLOCK_COLORS: Array[Color] = [
@@ -55,13 +52,18 @@ func _add_wall(pos: Vector2, size: Vector2) -> void:
 
 
 func _spawn_initial_blocks() -> void:
-	for i: int in range(5):
-		var block: DraggableBlock = BlockScene.instantiate() as DraggableBlock
+	var all_names: Array[StringName] = BlockShapes.get_all_names()
+	if all_names.is_empty():
+		push_error("No shapes loaded — check features/blocks/shapes/ directory")
+		return
+	for i: int in range(12):
+		var block: DraggableBlock = DraggableBlock.new()
+		block.shape_type = all_names[_rng.randi() % all_names.size()]
+		var bounds: Vector2 = BlockShapes.get_bounding_size(block.shape_type)
+		var margin: float = maxf(bounds.x, bounds.y) / 2.0 + 50.0
 		block.position = Vector2(
-			_rng.randf_range(150.0, VIEWPORT_SIZE.x - 150.0), 200.0 + i * 150.0
+			_rng.randf_range(margin, VIEWPORT_SIZE.x - margin),
+			100.0 + i * 100.0,
 		)
-		var color: Color = BLOCK_COLORS[i % BLOCK_COLORS.size()]
-		block.block_color = color
+		block.block_color = BLOCK_COLORS[i % BLOCK_COLORS.size()]
 		add_child(block)
-		var color_rect: ColorRect = block.get_node("ColorRect") as ColorRect
-		color_rect.color = color
