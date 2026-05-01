@@ -152,6 +152,9 @@ func _spawn_block() -> void:
 	block.block_color = BLOCK_COLORS[_rng.randi() % BLOCK_COLORS.size()]
 	block.freeze = true
 	block.gravity_scale = 0.0
+	block.collision_layer = 0
+	block.collision_mask = 0
+	block.drag_ceiling_y = spawn_y
 	block.drag_started.connect(_on_new_block_dragged.bind(block), CONNECT_ONE_SHOT)
 	_current_block = block
 	_block_container.add_child(block)
@@ -162,6 +165,8 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 		return
 	block.freeze = false
 	block.gravity_scale = 1.0
+	block.collision_layer = 1
+	block.collision_mask = 1
 	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
 
 
