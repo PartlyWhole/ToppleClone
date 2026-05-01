@@ -8,6 +8,8 @@ const ROUND_TIME: float = 60.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
+const BASE_TARGET_HEIGHT: float = 300.0
+const HEIGHT_PER_LEVEL: float = 200.0
 
 const BLOCK_COLORS: Array[Color] = [
 	Color.CORNFLOWER_BLUE,
@@ -22,6 +24,7 @@ const BLOCK_COLORS: Array[Color] = [
 var _state: State = State.MENU
 var _hp: int = MAX_HP
 var _time_remaining: float = ROUND_TIME
+var _level: int = 1
 var _current_block: DraggableBlock = null
 var _scan_timer: float = 0.0
 var _last_displayed_seconds: int = -1
@@ -38,6 +41,7 @@ func _ready() -> void:
 	set_process(false)
 	Events.ui_play_pressed.connect(_on_play_pressed)
 	Events.ui_restart_pressed.connect(_on_restart_pressed)
+	Events.ui_next_level_pressed.connect(_on_next_level_pressed)
 
 
 func _process(delta: float) -> void:
@@ -62,22 +66,35 @@ func _process(delta: float) -> void:
 func _on_play_pressed() -> void:
 	if _state != State.MENU:
 		return
-	_hp = MAX_HP
-	_time_remaining = ROUND_TIME
-	_last_displayed_seconds = -1
-	_scan_timer = 0.0
-	_tower_height = 0.0
-	_transition_to(State.PLAYING)
-	Events.game_started.emit()
-	Events.hp_changed.emit(_hp)
-	Events.timer_updated.emit(_time_remaining)
-	_spawn_block()
+	_level = 1
+	_start_round()
 
 
 func _on_restart_pressed() -> void:
 	if _state == State.RESTARTING:
 		return
 	_restart()
+
+
+func _on_next_level_pressed() -> void:
+	if _state != State.WON:
+		return
+	_level += 1
+	_start_round()
+
+
+func _start_round() -> void:
+	_hp = MAX_HP
+	_time_remaining = ROUND_TIME
+	_last_displayed_seconds = -1
+	_scan_timer = 0.0
+	_tower_height = 0.0
+	_transition_to(State.PLAYING)
+	Events.level_changed.emit(_level, _get_level_target())
+	Events.game_started.emit()
+	Events.hp_changed.emit(_hp)
+	Events.timer_updated.emit(_time_remaining)
+	_spawn_block()
 
 
 func _transition_to(new_state: State) -> void:
@@ -106,13 +123,14 @@ func _restart() -> void:
 			block.set_process_unhandled_input(false)
 		child.queue_free()
 	_current_block = null
-	_hp = MAX_HP
-	_time_remaining = ROUND_TIME
-	_last_displayed_seconds = -1
-	_scan_timer = 0.0
+	_level = 1
 	_tower_height = 0.0
 	Events.game_restarted.emit()
 	_transition_to(State.MENU)
+
+
+func _get_level_target() -> float:
+	return BASE_TARGET_HEIGHT + (_level - 1) * HEIGHT_PER_LEVEL
 
 
 func _spawn_block() -> void:
@@ -185,7 +203,7 @@ func _scan_tower() -> void:
 		_camera.update_target(highest_y)
 		Events.score_changed.emit(int(_tower_height))
 		GameState.current_height = _tower_height
-		if _tower_height >= GameplayController.TARGET_HEIGHT and _state == State.PLAYING:
+		if _tower_height >= _get_level_target() and _state == State.PLAYING:
 			_transition_to(State.WON)
 
 

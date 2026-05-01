@@ -16,6 +16,10 @@ signal high_score_beaten(new_high: int)
 signal hp_changed(new_hp: int)
 signal timer_updated(time_remaining: float)
 
+# Level
+signal level_changed(level: int, target_height: float)
+
 # UI
 signal ui_play_pressed
 signal ui_restart_pressed
+signal ui_next_level_pressed

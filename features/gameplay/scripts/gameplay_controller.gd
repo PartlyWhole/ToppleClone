@@ -9,7 +9,8 @@ const PLATFORM_WIDTH: float = 600.0
 const PLATFORM_HEIGHT: float = 40.0
 const WALL_TOP_Y: float = -5000.0
 const WALL_BOTTOM_Y: float = 2000.0
-const TARGET_HEIGHT: float = 600.0
+
+var _target_height: float = 300.0
 
 @onready var _block_container: Node2D = $BlockContainer
 
@@ -18,11 +19,17 @@ func _ready() -> void:
 	assert(_block_container != null, "BlockContainer node not found")
 	_create_platform()
 	_create_side_walls()
+	Events.level_changed.connect(_on_level_changed)
 	queue_redraw()
 
 
 func _draw() -> void:
 	_draw_finish_line()
+
+
+func _on_level_changed(_level: int, target_height: float) -> void:
+	_target_height = target_height
+	queue_redraw()
 
 
 func _create_platform() -> void:
@@ -73,7 +80,7 @@ func _add_wall(pos: Vector2, size: Vector2) -> void:
 
 
 func _draw_finish_line() -> void:
-	var finish_y: float = PLATFORM_SURFACE_Y - TARGET_HEIGHT
+	var finish_y: float = PLATFORM_SURFACE_Y - _target_height
 	var dash_length: float = 20.0
 	var gap_length: float = 10.0
 	var line_color: Color = Color(1.0, 0.84, 0.0, 0.6)
