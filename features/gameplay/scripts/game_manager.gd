@@ -27,6 +27,7 @@ var _hp: int = MAX_HP
 var _time_remaining: float = ROUND_TIME
 var _level: int = 1
 var _current_block: DraggableBlock = null
+var _is_spawn_pending: bool = false
 var _scan_timer: float = 0.0
 var _last_displayed_seconds: int = -1
 var _tower_height: float = 0.0
@@ -94,6 +95,7 @@ func _start_round() -> void:
 	_scan_timer = 0.0
 	_tower_height = 0.0
 	_tower_top_y = GameplayController.PLATFORM_SURFACE_Y
+	_is_spawn_pending = false
 	_camera.reset()
 	_transition_to(State.PLAYING)
 	Events.level_changed.emit(_level, _get_level_target())
@@ -183,7 +185,14 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 	block.gravity_scale = 1.0
 	block.collision_layer = 1
 	block.collision_mask = 1
-	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
+	_current_block = null
+	_is_spawn_pending = true
+	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_on_spawn_timer)
+
+
+func _on_spawn_timer() -> void:
+	_is_spawn_pending = false
+	_spawn_block()
 
 
 func _scan_tower() -> void:
@@ -224,7 +233,7 @@ func _scan_tower() -> void:
 		if _tower_height >= _get_level_target() and _state == State.PLAYING:
 			_transition_to(State.WON)
 
-	if _current_block == null and _state == State.PLAYING:
+	if _current_block == null and not _is_spawn_pending and _state == State.PLAYING:
 		_spawn_block()
 
 
