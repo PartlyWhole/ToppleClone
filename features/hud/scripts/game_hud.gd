@@ -40,6 +40,7 @@ func _ready() -> void:
 	var heart_labels: Array[Label] = [_heart_1, _heart_2, _heart_3, _heart_4]
 	for heart: Label in heart_labels:
 		heart.text = ""
+		heart.custom_minimum_size = Vector2(HEART_RADIUS * 2.0 + 4.0, 0.0)
 		var pip: Control = _create_pip()
 		heart.add_child(pip)
 		_heart_pips.append(pip)
