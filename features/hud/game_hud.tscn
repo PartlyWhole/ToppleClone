@@ -28,7 +28,7 @@ script = ExtResource("1_script")
 unique_name_in_owner = true
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 48.0
+offset_bottom = 56.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
 
@@ -38,28 +38,28 @@ layout_mode = 2
 [node name="Heart1" type="Label" parent="TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "♥"
 horizontal_alignment = 1
 
 [node name="Heart2" type="Label" parent="TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "♥"
 horizontal_alignment = 1
 
 [node name="Heart3" type="Label" parent="TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "♥"
 horizontal_alignment = 1
 
 [node name="Heart4" type="Label" parent="TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "♥"
 horizontal_alignment = 1
 
@@ -70,7 +70,7 @@ size_flags_horizontal = 3
 [node name="TimerLabel" type="Label" parent="TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 36
 text = "01:00"
 horizontal_alignment = 2
 
@@ -84,7 +84,7 @@ offset_top = 64.0
 offset_right = 100.0
 offset_bottom = 104.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 44
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -128,26 +128,26 @@ theme_override_constants/separation = 12
 [node name="ResultLabel" type="Label" parent="GameOverPanel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 36
 text = "GAME OVER"
 horizontal_alignment = 1
 
 [node name="FinalScoreLabel" type="Label" parent="GameOverPanel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "Height: 0"
 horizontal_alignment = 1
 
 [node name="HighScoreLabel" type="Label" parent="GameOverPanel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 22
 text = "Best: 0"
 horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="GameOverPanel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "RESTART"

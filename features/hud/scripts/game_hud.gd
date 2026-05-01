@@ -75,7 +75,7 @@ func _create_level_label() -> void:
 	_level_label.offset_right = 100.0
 	_level_label.offset_top = 52.0
 	_level_label.offset_bottom = 76.0
-	_level_label.add_theme_font_size_override(&"font_size", 20)
+	_level_label.add_theme_font_size_override(&"font_size", 26)
 	_level_label.modulate = Color(1.0, 1.0, 1.0, 0.7)
 	_level_label.visible = false
 	add_child(_level_label)
@@ -114,13 +114,13 @@ func _create_start_panel() -> void:
 	var title: Label = Label.new()
 	title.text = "TOWER"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override(&"font_size", 48)
+	title.add_theme_font_size_override(&"font_size", 56)
 	vbox.add_child(title)
 
 	var subtitle: Label = Label.new()
 	subtitle.text = "Stack to the sky"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override(&"font_size", 16)
+	subtitle.add_theme_font_size_override(&"font_size", 22)
 	subtitle.modulate = Color(1.0, 1.0, 1.0, 0.6)
 	vbox.add_child(subtitle)
 
@@ -131,7 +131,7 @@ func _create_start_panel() -> void:
 	var how_title: Label = Label.new()
 	how_title.text = "HOW TO PLAY"
 	how_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	how_title.add_theme_font_size_override(&"font_size", 18)
+	how_title.add_theme_font_size_override(&"font_size", 24)
 	vbox.add_child(how_title)
 
 	var instructions: Array[String] = [
@@ -144,7 +144,7 @@ func _create_start_panel() -> void:
 		var lbl: Label = Label.new()
 		lbl.text = line
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override(&"font_size", 14)
+		lbl.add_theme_font_size_override(&"font_size", 20)
 		lbl.modulate = Color(1.0, 1.0, 1.0, 0.8)
 		vbox.add_child(lbl)
 
@@ -155,7 +155,7 @@ func _create_start_panel() -> void:
 	var controls_title: Label = Label.new()
 	controls_title.text = "CONTROLS"
 	controls_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	controls_title.add_theme_font_size_override(&"font_size", 18)
+	controls_title.add_theme_font_size_override(&"font_size", 24)
 	vbox.add_child(controls_title)
 
 	var controls: Array[String] = [
@@ -166,7 +166,7 @@ func _create_start_panel() -> void:
 		var lbl: Label = Label.new()
 		lbl.text = line
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override(&"font_size", 14)
+		lbl.add_theme_font_size_override(&"font_size", 20)
 		lbl.modulate = Color(1.0, 1.0, 1.0, 0.8)
 		vbox.add_child(lbl)
 
@@ -176,7 +176,7 @@ func _create_start_panel() -> void:
 
 	var play_button: Button = Button.new()
 	play_button.text = "PLAY"
-	play_button.add_theme_font_size_override(&"font_size", 28)
+	play_button.add_theme_font_size_override(&"font_size", 36)
 	play_button.custom_minimum_size = Vector2(200, 50)
 	play_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	play_button.pressed.connect(_on_start_pressed)
@@ -185,7 +185,7 @@ func _create_start_panel() -> void:
 	var high_score_label: Label = Label.new()
 	high_score_label.text = "Best: %d" % GameState.high_score
 	high_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	high_score_label.add_theme_font_size_override(&"font_size", 14)
+	high_score_label.add_theme_font_size_override(&"font_size", 20)
 	high_score_label.modulate = Color(1.0, 1.0, 1.0, 0.5)
 	high_score_label.name = &"MenuHighScore"
 	vbox.add_child(high_score_label)
