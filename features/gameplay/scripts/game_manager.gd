@@ -136,6 +136,8 @@ func _get_level_target() -> float:
 func _spawn_block() -> void:
 	if _state != State.PLAYING:
 		return
+	if _current_block != null and is_instance_valid(_current_block):
+		return
 	if _is_above_goal():
 		return
 	var all_names: Array[StringName] = BlockShapes.get_all_names()
