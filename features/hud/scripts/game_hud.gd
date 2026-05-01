@@ -4,6 +4,7 @@ extends CanvasLayer
 var _heart_labels: Array[Label] = []
 var _is_win: bool = false
 var _level_label: Label = null
+var _start_panel: PanelContainer = null
 
 @onready var _heart_1: Label = %Heart1
 @onready var _heart_2: Label = %Heart2
@@ -34,9 +35,10 @@ func _ready() -> void:
 	assert(_restart_button != null, "RestartButton not found")
 
 	_heart_labels = [_heart_1, _heart_2, _heart_3, _heart_4]
+	_start_button.visible = false
 	_create_level_label()
+	_create_start_panel()
 
-	_start_button.pressed.connect(_on_start_pressed)
 	_restart_button.pressed.connect(_on_restart_pressed)
 
 	Events.hp_changed.connect(_on_hp_changed)
@@ -51,7 +53,7 @@ func _ready() -> void:
 
 
 func _show_menu() -> void:
-	_start_button.visible = true
+	_start_panel.visible = true
 	_game_over_panel.visible = false
 	_score_label.visible = false
 	_level_label.visible = false
@@ -79,6 +81,118 @@ func _create_level_label() -> void:
 	add_child(_level_label)
 
 
+func _create_start_panel() -> void:
+	_start_panel = PanelContainer.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.0, 0.0, 0.0, 0.75)
+	style.corner_radius_top_left = 16
+	style.corner_radius_top_right = 16
+	style.corner_radius_bottom_left = 16
+	style.corner_radius_bottom_right = 16
+	style.content_margin_left = 32.0
+	style.content_margin_right = 32.0
+	style.content_margin_top = 28.0
+	style.content_margin_bottom = 28.0
+	_start_panel.add_theme_stylebox_override(&"panel", style)
+	_start_panel.anchors_preset = Control.PRESET_CENTER
+	_start_panel.anchor_left = 0.5
+	_start_panel.anchor_top = 0.5
+	_start_panel.anchor_right = 0.5
+	_start_panel.anchor_bottom = 0.5
+	_start_panel.offset_left = -160.0
+	_start_panel.offset_right = 160.0
+	_start_panel.offset_top = -200.0
+	_start_panel.offset_bottom = 200.0
+	_start_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_start_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override(&"separation", 16)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_start_panel.add_child(vbox)
+
+	var title: Label = Label.new()
+	title.text = "TOWER"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override(&"font_size", 48)
+	vbox.add_child(title)
+
+	var subtitle: Label = Label.new()
+	subtitle.text = "Stack to the sky"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override(&"font_size", 16)
+	subtitle.modulate = Color(1.0, 1.0, 1.0, 0.6)
+	vbox.add_child(subtitle)
+
+	var spacer1: Control = Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 8)
+	vbox.add_child(spacer1)
+
+	var how_title: Label = Label.new()
+	how_title.text = "HOW TO PLAY"
+	how_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	how_title.add_theme_font_size_override(&"font_size", 18)
+	vbox.add_child(how_title)
+
+	var instructions: Array[String] = [
+		"Drag blocks onto the platform",
+		"Stack them to reach the goal line",
+		"Blocks that fall off cost 1 HP",
+		"Beat the clock to advance!",
+	]
+	for line: String in instructions:
+		var lbl: Label = Label.new()
+		lbl.text = line
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override(&"font_size", 14)
+		lbl.modulate = Color(1.0, 1.0, 1.0, 0.8)
+		vbox.add_child(lbl)
+
+	var spacer2: Control = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 4)
+	vbox.add_child(spacer2)
+
+	var controls_title: Label = Label.new()
+	controls_title.text = "CONTROLS"
+	controls_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	controls_title.add_theme_font_size_override(&"font_size", 18)
+	vbox.add_child(controls_title)
+
+	var controls: Array[String] = [
+		"Click + Drag to move blocks",
+		"Q / E to rotate while dragging",
+	]
+	for line: String in controls:
+		var lbl: Label = Label.new()
+		lbl.text = line
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override(&"font_size", 14)
+		lbl.modulate = Color(1.0, 1.0, 1.0, 0.8)
+		vbox.add_child(lbl)
+
+	var spacer3: Control = Control.new()
+	spacer3.custom_minimum_size = Vector2(0, 8)
+	vbox.add_child(spacer3)
+
+	var play_button: Button = Button.new()
+	play_button.text = "PLAY"
+	play_button.add_theme_font_size_override(&"font_size", 28)
+	play_button.custom_minimum_size = Vector2(200, 50)
+	play_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	play_button.pressed.connect(_on_start_pressed)
+	vbox.add_child(play_button)
+
+	var high_score_label: Label = Label.new()
+	high_score_label.text = "Best: %d" % GameState.high_score
+	high_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	high_score_label.add_theme_font_size_override(&"font_size", 14)
+	high_score_label.modulate = Color(1.0, 1.0, 1.0, 0.5)
+	high_score_label.name = &"MenuHighScore"
+	vbox.add_child(high_score_label)
+
+	add_child(_start_panel)
+
+
 func _on_start_pressed() -> void:
 	Events.ui_play_pressed.emit()
 
@@ -91,7 +205,7 @@ func _on_restart_pressed() -> void:
 
 
 func _on_game_started() -> void:
-	_start_button.visible = false
+	_start_panel.visible = false
 	_game_over_panel.visible = false
 	_score_label.visible = true
 	_level_label.visible = true
@@ -135,8 +249,11 @@ func _on_game_ended(is_win: bool, final_height: float) -> void:
 	_final_score_label.text = "Height: %d" % int(final_height)
 	_high_score_label.text = "Best: %d" % GameState.high_score
 	_game_over_panel.visible = true
-	_start_button.visible = false
+	_start_panel.visible = false
 
 
 func _on_game_restarted() -> void:
+	var menu_hs: Label = _start_panel.find_child(&"MenuHighScore") as Label
+	if menu_hs != null:
+		menu_hs.text = "Best: %d" % GameState.high_score
 	_show_menu()
