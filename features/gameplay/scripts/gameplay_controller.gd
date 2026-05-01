@@ -21,6 +21,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	_draw_height_markers()
 	_draw_finish_line()
 
 
@@ -54,6 +55,27 @@ func _create_platform() -> void:
 		PLATFORM_SURFACE_Y,
 	)
 	add_child(visual)
+
+
+func _draw_height_markers() -> void:
+	var marker_interval: float = 100.0
+	var max_height: float = _target_height + 200.0
+	var marker_color: Color = Color(1.0, 1.0, 1.0, 0.15)
+	var label_color: Color = Color(1.0, 1.0, 1.0, 0.3)
+	var height: float = marker_interval
+	while height <= max_height:
+		var y: float = PLATFORM_SURFACE_Y - height
+		draw_line(Vector2(0.0, y), Vector2(VIEWPORT_SIZE.x, y), marker_color, 1.0)
+		draw_string(
+			ThemeDB.fallback_font,
+			Vector2(8.0, y - 4.0),
+			"%d" % int(height),
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			12,
+			label_color,
+		)
+		height += marker_interval
 
 
 func _draw_finish_line() -> void:

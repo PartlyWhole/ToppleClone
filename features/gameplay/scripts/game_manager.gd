@@ -8,7 +8,7 @@ const ROUND_TIME: float = 60.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
-const SPAWN_OFFSET: float = 400.0
+const SPAWN_TOP_MARGIN: float = 100.0
 const BASE_TARGET_HEIGHT: float = 300.0
 const HEIGHT_PER_LEVEL: float = 200.0
 
@@ -59,6 +59,7 @@ func _process(delta: float) -> void:
 		Events.timer_updated.emit(0.0)
 		_transition_to(State.LOST)
 		return
+	_track_spawn_block()
 	_scan_timer += delta
 	if _scan_timer >= HEIGHT_SCAN_INTERVAL:
 		_scan_timer = 0.0
@@ -144,7 +145,9 @@ func _spawn_block() -> void:
 	var bounds: Vector2 = BlockShapes.get_bounding_size(block.shape_type)
 	var margin: float = maxf(bounds.x, bounds.y) / 2.0 + 50.0
 	var viewport_w: float = get_viewport().get_visible_rect().size.x
-	var spawn_y: float = _tower_top_y - SPAWN_OFFSET
+	var viewport_h: float = get_viewport().get_visible_rect().size.y
+	var cam_top: float = _camera.position.y - viewport_h / 2.0
+	var spawn_y: float = cam_top + SPAWN_TOP_MARGIN
 	block.position = Vector2(
 		_rng.randf_range(margin, viewport_w - margin),
 		spawn_y,
@@ -157,6 +160,16 @@ func _spawn_block() -> void:
 	block.drag_started.connect(_on_new_block_dragged.bind(block), CONNECT_ONE_SHOT)
 	_current_block = block
 	_block_container.add_child(block)
+
+
+func _track_spawn_block() -> void:
+	if _current_block == null or not is_instance_valid(_current_block):
+		return
+	if not _current_block.freeze:
+		return
+	var viewport_h: float = get_viewport().get_visible_rect().size.y
+	var cam_top: float = _camera.position.y - viewport_h / 2.0
+	_current_block.position.y = cam_top + SPAWN_TOP_MARGIN
 
 
 func _on_new_block_dragged(block: DraggableBlock) -> void:
