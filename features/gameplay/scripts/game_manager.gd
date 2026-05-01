@@ -196,8 +196,7 @@ func _scan_tower() -> void:
 			continue
 		if not block.is_placed:
 			continue
-		var top_y: float = block.position.y - block.get_bounding_size().y / 2.0
-		highest_y = minf(highest_y, top_y)
+		highest_y = minf(highest_y, block.get_top_y())
 
 	for block: DraggableBlock in blocks_to_remove:
 		if _state != State.PLAYING:

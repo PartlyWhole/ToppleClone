@@ -138,6 +138,15 @@ func get_bounding_size() -> Vector2:
 	return _bounding_size
 
 
+func get_top_y() -> float:
+	var min_y: float = global_position.y
+	for vertex: Vector2 in _polygon:
+		var rotated: Vector2 = vertex.rotated(global_rotation)
+		var world_y: float = global_position.y + rotated.y
+		min_y = minf(min_y, world_y)
+	return min_y
+
+
 func wake_up() -> void:
 	freeze = false
 	_sleep_frames = 0
