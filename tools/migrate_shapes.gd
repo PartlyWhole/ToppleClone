@@ -43,8 +43,11 @@ func _migrate_all() -> void:
 
 		var err: Error = ShapeFileIO.save_shape(name_str, vertices, decomposed)
 		if err == OK:
-			print("Migrated: %s (%d vertices, %d convex parts)" % [
-				name_str, vertices.size(), decomposed.size()
-			])
+			print(
+				(
+					"Migrated: %s (%d vertices, %d convex parts)"
+					% [name_str, vertices.size(), decomposed.size()]
+				)
+			)
 		else:
 			push_error("Failed to save %s: %s" % [name_str, error_string(err)])

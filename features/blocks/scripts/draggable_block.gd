@@ -13,6 +13,8 @@ const SETTLE_TIME: float = 1.0
 
 @export_group("Drag")
 @export var max_drag_speed: float = 600.0
+@export var proximity_range: float = 60.0
+@export var proximity_min_speed: float = 0.1
 @export var contact_dampen_sideways: float = 0.3
 @export var contact_dampen_downward: float = 0.0
 @export var downward_normal_threshold: float = -0.5
@@ -95,6 +97,9 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	var target: Vector2 = get_global_mouse_position() + _drag_offset
 	var distance: float = target.distance_to(global_position)
 	var speed_limit: float = max_drag_speed + distance * 2.0
+
+	var proximity_factor: float = _get_proximity_factor()
+	speed_limit *= proximity_factor
 
 	var desired: Vector2 = (target - global_position) / state.step
 	var desired_speed_sq: float = desired.length_squared()
@@ -199,6 +204,19 @@ func _update_rotate_input() -> void:
 		_rotate_dir = 1.0
 	else:
 		_rotate_dir = 0.0
+
+
+func _get_proximity_factor() -> float:
+	var min_dist_sq: float = proximity_range * proximity_range
+	for node: Node in get_tree().get_nodes_in_group(&"tunable_blocks"):
+		if node == self:
+			continue
+		var other: DraggableBlock = node as DraggableBlock
+		var dist_sq: float = global_position.distance_squared_to(other.global_position)
+		if dist_sq < min_dist_sq:
+			min_dist_sq = dist_sq
+	var t: float = sqrt(min_dist_sq) / proximity_range
+	return lerpf(proximity_min_speed, 1.0, t)
 
 
 func _build_collision() -> void:
