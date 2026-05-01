@@ -4,8 +4,8 @@ extends Node2D
 
 const VIEWPORT_SIZE: Vector2 = Vector2(720, 1280)
 const PLATFORM_SURFACE_Y: float = 1180.0
-const PLATFORM_WIDTH: float = 600.0
-const PLATFORM_HEIGHT: float = 40.0
+const PLATFORM_WIDTH: float = 360.0
+const PLATFORM_HEIGHT: float = 80.0
 const OUT_OF_BOUNDS_MARGIN: float = 300.0
 
 var _target_height: float = 300.0
