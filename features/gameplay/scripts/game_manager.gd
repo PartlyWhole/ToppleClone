@@ -222,6 +222,9 @@ func _scan_tower() -> void:
 		if _tower_height >= _get_level_target() and _state == State.PLAYING:
 			_transition_to(State.WON)
 
+	if _current_block == null and _state == State.PLAYING:
+		_spawn_block()
+
 
 func _freeze_all_blocks() -> void:
 	for child: Node in _block_container.get_children():
