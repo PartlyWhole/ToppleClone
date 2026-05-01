@@ -178,7 +178,6 @@ func _check_settlement(state: PhysicsDirectBodyState2D) -> void:
 		if _settle_timer >= SETTLE_TIME:
 			is_placed = true
 			contact_monitor = false
-			freeze = true
 			placed.emit()
 	else:
 		_settle_timer = 0.0
@@ -198,8 +197,9 @@ func _update_rotate_input() -> void:
 func _build_collision() -> void:
 	var convex_parts: Array[PackedVector2Array] = BlockShapes.get_convex_parts(shape_type)
 	for part: PackedVector2Array in convex_parts:
+		var simplified: PackedVector2Array = _remove_collinear(part)
 		var col: CollisionShape2D = CollisionShape2D.new()
-		var rect: Rect2 = _try_as_rect(part)
+		var rect: Rect2 = _try_as_rect(simplified)
 		if rect.size.x > 0.0:
 			var rect_shape: RectangleShape2D = RectangleShape2D.new()
 			rect_shape.size = rect.size
@@ -207,9 +207,24 @@ func _build_collision() -> void:
 			col.position = rect.position + rect.size / 2.0
 		else:
 			var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
-			shape.points = part
+			shape.points = simplified
 			col.shape = shape
 		add_child(col)
+
+
+func _remove_collinear(verts: PackedVector2Array) -> PackedVector2Array:
+	var result: PackedVector2Array = PackedVector2Array()
+	var count: int = verts.size()
+	if count < 3:
+		return verts
+	for i: int in range(count):
+		var prev: Vector2 = verts[(i - 1 + count) % count]
+		var curr: Vector2 = verts[i]
+		var next_v: Vector2 = verts[(i + 1) % count]
+		var cross: float = (curr - prev).cross(next_v - curr)
+		if not is_zero_approx(cross):
+			result.append(curr)
+	return result
 
 
 func _try_as_rect(verts: PackedVector2Array) -> Rect2:
