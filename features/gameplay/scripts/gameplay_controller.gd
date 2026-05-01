@@ -60,8 +60,8 @@ func _create_platform() -> void:
 func _draw_height_markers() -> void:
 	var marker_interval: float = 100.0
 	var max_height: float = _target_height + 200.0
-	var marker_color: Color = Color(1.0, 1.0, 1.0, 0.15)
-	var label_color: Color = Color(1.0, 1.0, 1.0, 0.3)
+	var marker_color: Color = Color(1.0, 1.0, 1.0, 0.06)
+	var label_color: Color = Color(1.0, 1.0, 1.0, 0.12)
 	var height: float = marker_interval
 	while height <= max_height:
 		var y: float = PLATFORM_SURFACE_Y - height
