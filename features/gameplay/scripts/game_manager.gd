@@ -9,7 +9,6 @@ const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
 const SPAWN_TOP_MARGIN: float = 100.0
-const GOAL_SETTLE_TIME: float = 1.0
 const BASE_TARGET_HEIGHT: float = 300.0
 const HEIGHT_PER_LEVEL: float = 200.0
 
@@ -137,6 +136,8 @@ func _get_level_target() -> float:
 func _spawn_block() -> void:
 	if _state != State.PLAYING:
 		return
+	if _is_above_goal():
+		return
 	var all_names: Array[StringName] = BlockShapes.get_all_names()
 	if all_names.is_empty():
 		push_error("No shapes loaded — check features/blocks/shapes/ directory")
@@ -180,17 +181,6 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 	block.gravity_scale = 1.0
 	block.collision_layer = 1
 	block.collision_mask = 1
-	var goal_y: float = GameplayController.PLATFORM_SURFACE_Y - _get_level_target()
-	if block.position.y <= goal_y:
-		block.settle_time_override = GOAL_SETTLE_TIME
-		block.placed.connect(_on_goal_block_placed, CONNECT_ONE_SHOT)
-	else:
-		get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
-
-
-func _on_goal_block_placed() -> void:
-	if _state != State.PLAYING:
-		return
 	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
 
 
@@ -249,6 +239,21 @@ func _clear_blocks() -> void:
 			block.set_process_unhandled_input(false)
 		child.queue_free()
 	_current_block = null
+
+
+func _is_above_goal() -> bool:
+	var goal_y: float = GameplayController.PLATFORM_SURFACE_Y - _get_level_target()
+	for child: Node in _block_container.get_children():
+		if not (child is DraggableBlock):
+			continue
+		var block: DraggableBlock = child as DraggableBlock
+		if block == _current_block:
+			continue
+		if not is_instance_valid(block):
+			continue
+		if block.get_top_y() <= goal_y:
+			return true
+	return false
 
 
 func _is_out_of_bounds(block: DraggableBlock) -> bool:
