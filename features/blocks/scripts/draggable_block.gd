@@ -30,6 +30,7 @@ const SETTLE_TIME: float = 0.3
 
 var shape_type: StringName = &""
 var is_placed: bool = false
+var settle_time_override: float = -1.0
 var _bounding_size: Vector2 = Vector2(60.0, 60.0)
 var _is_dragging: bool = false
 var _is_released: bool = false
@@ -178,9 +179,10 @@ func _stop_drag() -> void:
 func _check_settlement(state: PhysicsDirectBodyState2D) -> void:
 	var is_slow: bool = state.linear_velocity.length_squared() < SETTLE_VELOCITY_SQ
 	var has_contact: bool = state.get_contact_count() > 0
+	var required_time: float = settle_time_override if settle_time_override > 0.0 else SETTLE_TIME
 	if is_slow and has_contact:
 		_settle_timer += state.step
-		if _settle_timer >= SETTLE_TIME:
+		if _settle_timer >= required_time:
 			is_placed = true
 			contact_monitor = false
 			placed.emit()

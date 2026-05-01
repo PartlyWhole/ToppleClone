@@ -9,6 +9,7 @@ const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
 const SPAWN_TOP_MARGIN: float = 100.0
+const GOAL_SETTLE_TIME: float = 1.0
 const BASE_TARGET_HEIGHT: float = 300.0
 const HEIGHT_PER_LEVEL: float = 200.0
 
@@ -179,6 +180,17 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 	block.gravity_scale = 1.0
 	block.collision_layer = 1
 	block.collision_mask = 1
+	var goal_y: float = GameplayController.PLATFORM_SURFACE_Y - _get_level_target()
+	if block.position.y <= goal_y:
+		block.settle_time_override = GOAL_SETTLE_TIME
+		block.placed.connect(_on_goal_block_placed, CONNECT_ONE_SHOT)
+	else:
+		get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
+
+
+func _on_goal_block_placed() -> void:
+	if _state != State.PLAYING:
+		return
 	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
 
 
