@@ -52,10 +52,10 @@ func _ready() -> void:
 	continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
 	contact_monitor = false
 	max_contacts_reported = 4
-	angular_damp = 5.0
-	linear_damp = 0.5
+	angular_damp = 8.0
+	linear_damp = 2.0
 	var mat: PhysicsMaterial = PhysicsMaterial.new()
-	mat.friction = 1.0
+	mat.friction = 1.5
 	mat.rough = true
 	physics_material_override = mat
 	input_event.connect(_on_input_event)

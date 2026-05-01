@@ -60,6 +60,10 @@ func _create_side_walls() -> void:
 func _add_wall(pos: Vector2, size: Vector2) -> void:
 	var body: StaticBody2D = StaticBody2D.new()
 	body.position = pos
+	var mat: PhysicsMaterial = PhysicsMaterial.new()
+	mat.friction = 1.5
+	mat.rough = true
+	body.physics_material_override = mat
 	var shape: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = size
