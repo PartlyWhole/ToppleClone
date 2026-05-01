@@ -8,7 +8,7 @@ const ROUND_TIME: float = 60.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
-const SPAWN_OFFSET: float = 250.0
+const SPAWN_OFFSET: float = 400.0
 const BASE_TARGET_HEIGHT: float = 300.0
 const HEIGHT_PER_LEVEL: float = 200.0
 
