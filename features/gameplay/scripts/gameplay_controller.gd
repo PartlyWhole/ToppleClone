@@ -61,7 +61,7 @@ func _add_wall(pos: Vector2, size: Vector2) -> void:
 	var body: StaticBody2D = StaticBody2D.new()
 	body.position = pos
 	var mat: PhysicsMaterial = PhysicsMaterial.new()
-	mat.friction = 1.5
+	mat.friction = 1.0
 	mat.rough = true
 	body.physics_material_override = mat
 	var shape: CollisionShape2D = CollisionShape2D.new()
