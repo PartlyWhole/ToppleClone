@@ -8,6 +8,7 @@ const ROUND_TIME: float = 60.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
 const SPAWN_DELAY: float = 2.0
+const SPAWN_OFFSET: float = 250.0
 const BASE_TARGET_HEIGHT: float = 300.0
 const HEIGHT_PER_LEVEL: float = 200.0
 
@@ -29,6 +30,7 @@ var _current_block: DraggableBlock = null
 var _scan_timer: float = 0.0
 var _last_displayed_seconds: int = -1
 var _tower_height: float = 0.0
+var _tower_top_y: float = GameplayController.PLATFORM_SURFACE_Y
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 @onready var _camera: GameCamera = $"../GameCamera" as GameCamera
@@ -90,6 +92,7 @@ func _start_round() -> void:
 	_last_displayed_seconds = -1
 	_scan_timer = 0.0
 	_tower_height = 0.0
+	_tower_top_y = GameplayController.PLATFORM_SURFACE_Y
 	_camera.reset()
 	_transition_to(State.PLAYING)
 	Events.level_changed.emit(_level, _get_level_target())
@@ -141,9 +144,7 @@ func _spawn_block() -> void:
 	var bounds: Vector2 = BlockShapes.get_bounding_size(block.shape_type)
 	var margin: float = maxf(bounds.x, bounds.y) / 2.0 + 50.0
 	var viewport_w: float = get_viewport().get_visible_rect().size.x
-	var spawn_y: float = (
-		_camera.get_target_y() - get_viewport().get_visible_rect().size.y / 2.0 + 120.0
-	)
+	var spawn_y: float = _tower_top_y - SPAWN_OFFSET
 	block.position = Vector2(
 		_rng.randf_range(margin, viewport_w - margin),
 		spawn_y,
@@ -194,9 +195,10 @@ func _scan_tower() -> void:
 			_transition_to(State.LOST)
 			return
 
-	_tower_height = GameplayController.PLATFORM_SURFACE_Y - highest_y
+	_tower_top_y = highest_y
+	_tower_height = GameplayController.PLATFORM_SURFACE_Y - _tower_top_y
 	if _tower_height > 0.0:
-		_camera.update_target(highest_y)
+		_camera.update_target(_tower_top_y)
 		Events.score_changed.emit(int(_tower_height))
 		GameState.current_height = _tower_height
 		if _tower_height >= _get_level_target() and _state == State.PLAYING:
