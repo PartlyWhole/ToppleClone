@@ -36,7 +36,7 @@ func _create_platform() -> void:
 		PLATFORM_SURFACE_Y + PLATFORM_HEIGHT / 2.0,
 	)
 	var mat: PhysicsMaterial = PhysicsMaterial.new()
-	mat.friction = 1.0
+	mat.friction = 0.85
 	mat.rough = true
 	body.physics_material_override = mat
 	var shape: CollisionShape2D = CollisionShape2D.new()

@@ -53,7 +53,7 @@ func _ready() -> void:
 	angular_damp = 5.0
 	linear_damp = 0.5
 	var mat: PhysicsMaterial = PhysicsMaterial.new()
-	mat.friction = 1.0
+	mat.friction = 0.85
 	mat.rough = true
 	physics_material_override = mat
 	input_event.connect(_on_input_event)
