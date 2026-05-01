@@ -3,12 +3,15 @@ extends RigidBody2D
 
 signal drag_started
 signal drag_ended
+signal placed
 
 const BASE_MASS: float = 5.0
 const REFERENCE_AREA: float = 3600.0
 const WORLD_MIN_X: float = 20.0
 const WORLD_MAX_X: float = 700.0
 const FREEZE_AFTER_FRAMES: int = 60
+const SETTLE_VELOCITY_SQ: float = 100.0
+const SETTLE_TIME: float = 0.3
 
 @export_group("Drag")
 @export var max_drag_speed: float = 600.0
@@ -28,13 +31,16 @@ const FREEZE_AFTER_FRAMES: int = 60
 @export var border_width: float = 2.0
 
 var shape_type: StringName = &""
+var is_placed: bool = false
 var _bounding_size: Vector2 = Vector2(60.0, 60.0)
 var _is_dragging: bool = false
+var _is_released: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
 var _base_gravity_scale: float = 1.0
 var _polygon: PackedVector2Array = PackedVector2Array()
 var _rotate_dir: float = 0.0
 var _sleep_frames: int = 0
+var _settle_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -72,6 +78,8 @@ func _draw() -> void:
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if not _is_dragging:
+		if _is_released and not is_placed:
+			_check_settlement(state)
 		if sleeping:
 			_sleep_frames += 1
 			if _sleep_frames >= FREEZE_AFTER_FRAMES:
@@ -144,6 +152,9 @@ func _start_drag() -> void:
 	if freeze:
 		wake_up()
 	_is_dragging = true
+	_is_released = false
+	is_placed = false
+	_settle_timer = 0.0
 	_drag_offset = global_position - get_global_mouse_position()
 	_base_gravity_scale = gravity_scale
 	gravity_scale = 0.0
@@ -154,11 +165,24 @@ func _start_drag() -> void:
 
 func _stop_drag() -> void:
 	_is_dragging = false
+	_is_released = true
 	gravity_scale = _base_gravity_scale
 	linear_velocity = Vector2.ZERO
-	contact_monitor = false
 	set_process_unhandled_input(false)
 	drag_ended.emit()
+
+
+func _check_settlement(state: PhysicsDirectBodyState2D) -> void:
+	var is_slow: bool = state.linear_velocity.length_squared() < SETTLE_VELOCITY_SQ
+	var has_contact: bool = state.get_contact_count() > 0
+	if is_slow and has_contact:
+		_settle_timer += state.step
+		if _settle_timer >= SETTLE_TIME:
+			is_placed = true
+			contact_monitor = false
+			placed.emit()
+	else:
+		_settle_timer = 0.0
 
 
 func _update_rotate_input() -> void:

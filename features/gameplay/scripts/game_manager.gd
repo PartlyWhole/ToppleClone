@@ -158,10 +158,10 @@ func _scan_tower() -> void:
 		var block: DraggableBlock = child as DraggableBlock
 		if not is_instance_valid(block):
 			continue
-		if block == _current_block and block.freeze:
-			continue
 		if block.position.y > GameplayController.PLATFORM_SURFACE_Y + DROP_THRESHOLD_Y:
 			blocks_to_remove.append(block)
+			continue
+		if not block.is_placed:
 			continue
 		var top_y: float = block.position.y - block.get_bounding_size().y / 2.0
 		highest_y = minf(highest_y, top_y)
