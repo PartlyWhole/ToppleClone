@@ -36,7 +36,6 @@ var _bounding_size: Vector2 = Vector2(60.0, 60.0)
 var _is_dragging: bool = false
 var _is_released: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
-var _base_gravity_scale: float = 1.0
 var _polygon: PackedVector2Array = PackedVector2Array()
 var _rotate_dir: float = 0.0
 var _sleep_frames: int = 0
@@ -156,7 +155,6 @@ func _start_drag() -> void:
 	is_placed = false
 	_settle_timer = 0.0
 	_drag_offset = global_position - get_global_mouse_position()
-	_base_gravity_scale = gravity_scale
 	gravity_scale = 0.0
 	contact_monitor = true
 	set_process_unhandled_input(true)
@@ -166,7 +164,7 @@ func _start_drag() -> void:
 func _stop_drag() -> void:
 	_is_dragging = false
 	_is_released = true
-	gravity_scale = _base_gravity_scale
+	gravity_scale = 1.0
 	linear_velocity = Vector2.ZERO
 	set_process_unhandled_input(false)
 	drag_ended.emit()

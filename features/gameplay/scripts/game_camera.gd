@@ -3,17 +3,19 @@ extends Camera2D
 
 @export var smooth_speed: float = 3.0
 @export var look_ahead: float = 200.0
+@export var bottom_margin: float = 100.0
 
 var _target_y: float = 0.0
 var _initial_y: float = 0.0
+var _viewport_half_h: float = 0.0
 
 
 func _ready() -> void:
 	assert(smooth_speed > 0.0, "smooth_speed must be positive")
 	assert(look_ahead >= 0.0, "look_ahead must be non-negative")
 	set_process(false)
-	var viewport_height: float = get_viewport_rect().size.y
-	_initial_y = viewport_height / 2.0
+	_viewport_half_h = get_viewport_rect().size.y / 2.0
+	_initial_y = GameplayController.PLATFORM_SURFACE_Y - _viewport_half_h + bottom_margin
 	_target_y = _initial_y
 	position = Vector2(get_viewport_rect().size.x / 2.0, _initial_y)
 	enabled = true
@@ -29,7 +31,7 @@ func _process(delta: float) -> void:
 
 
 func update_target(tower_top_y: float) -> void:
-	_target_y = minf(_target_y, tower_top_y)
+	_target_y = tower_top_y
 
 
 func get_target_y() -> float:

@@ -7,6 +7,7 @@ const MAX_HP: int = 4
 const ROUND_TIME: float = 60.0
 const DROP_THRESHOLD_Y: float = 300.0
 const HEIGHT_SCAN_INTERVAL: float = 0.5
+const SPAWN_DELAY: float = 2.0
 
 const BLOCK_COLORS: Array[Color] = [
 	Color.CORNFLOWER_BLUE,
@@ -146,7 +147,7 @@ func _on_new_block_dragged(block: DraggableBlock) -> void:
 		return
 	block.freeze = false
 	block.gravity_scale = 1.0
-	_spawn_block()
+	get_tree().create_timer(SPAWN_DELAY).timeout.connect(_spawn_block)
 
 
 func _scan_tower() -> void:
