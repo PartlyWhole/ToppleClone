@@ -1,14 +1,12 @@
 class_name GameplayController
 extends Node2D
-## Sets up the play area: base platform, side walls, and finish line.
+## Sets up the play area: base platform and finish line.
 
-const WALL_THICKNESS: float = 20.0
 const VIEWPORT_SIZE: Vector2 = Vector2(720, 1280)
 const PLATFORM_SURFACE_Y: float = 1180.0
 const PLATFORM_WIDTH: float = 600.0
 const PLATFORM_HEIGHT: float = 40.0
-const WALL_TOP_Y: float = -5000.0
-const WALL_BOTTOM_Y: float = 2000.0
+const OUT_OF_BOUNDS_MARGIN: float = 300.0
 
 var _target_height: float = 300.0
 
@@ -18,7 +16,6 @@ var _target_height: float = 300.0
 func _ready() -> void:
 	assert(_block_container != null, "BlockContainer node not found")
 	_create_platform()
-	_create_side_walls()
 	Events.level_changed.connect(_on_level_changed)
 	queue_redraw()
 
@@ -33,14 +30,22 @@ func _on_level_changed(_level: int, target_height: float) -> void:
 
 
 func _create_platform() -> void:
-	_add_wall(
-		Vector2(VIEWPORT_SIZE.x / 2.0, PLATFORM_SURFACE_Y + PLATFORM_HEIGHT / 2.0),
-		Vector2(PLATFORM_WIDTH, PLATFORM_HEIGHT),
+	var body: StaticBody2D = StaticBody2D.new()
+	body.position = Vector2(
+		VIEWPORT_SIZE.x / 2.0,
+		PLATFORM_SURFACE_Y + PLATFORM_HEIGHT / 2.0,
 	)
-	_draw_platform_visual()
+	var mat: PhysicsMaterial = PhysicsMaterial.new()
+	mat.friction = 0.5
+	mat.rough = true
+	body.physics_material_override = mat
+	var shape: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	rect.size = Vector2(PLATFORM_WIDTH, PLATFORM_HEIGHT)
+	shape.shape = rect
+	body.add_child(shape)
+	add_child(body)
 
-
-func _draw_platform_visual() -> void:
 	var visual: ColorRect = ColorRect.new()
 	visual.color = Color(0.25, 0.25, 0.3, 1.0)
 	visual.size = Vector2(PLATFORM_WIDTH, PLATFORM_HEIGHT)
@@ -49,34 +54,6 @@ func _draw_platform_visual() -> void:
 		PLATFORM_SURFACE_Y,
 	)
 	add_child(visual)
-
-
-func _create_side_walls() -> void:
-	var wall_height: float = WALL_BOTTOM_Y - WALL_TOP_Y
-	var center_y: float = (WALL_TOP_Y + WALL_BOTTOM_Y) / 2.0
-	_add_wall(
-		Vector2(-WALL_THICKNESS / 2.0, center_y),
-		Vector2(WALL_THICKNESS, wall_height),
-	)
-	_add_wall(
-		Vector2(VIEWPORT_SIZE.x + WALL_THICKNESS / 2.0, center_y),
-		Vector2(WALL_THICKNESS, wall_height),
-	)
-
-
-func _add_wall(pos: Vector2, size: Vector2) -> void:
-	var body: StaticBody2D = StaticBody2D.new()
-	body.position = pos
-	var mat: PhysicsMaterial = PhysicsMaterial.new()
-	mat.friction = 0.5
-	mat.rough = true
-	body.physics_material_override = mat
-	var shape: CollisionShape2D = CollisionShape2D.new()
-	var rect: RectangleShape2D = RectangleShape2D.new()
-	rect.size = size
-	shape.shape = rect
-	body.add_child(shape)
-	add_child(body)
 
 
 func _draw_finish_line() -> void:

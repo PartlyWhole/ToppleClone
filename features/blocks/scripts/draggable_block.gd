@@ -7,8 +7,6 @@ signal placed
 
 const BASE_MASS: float = 5.0
 const REFERENCE_AREA: float = 3600.0
-const WORLD_MIN_X: float = 20.0
-const WORLD_MAX_X: float = 700.0
 const FREEZE_AFTER_FRAMES: int = 60
 const SETTLE_VELOCITY_SQ: float = 100.0
 const SETTLE_TIME: float = 0.3
@@ -94,9 +92,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		)
 		return
 
-	var half: Vector2 = _bounding_size / 2.0
 	var target: Vector2 = get_global_mouse_position() + _drag_offset
-	target.x = clampf(target.x, WORLD_MIN_X + half.x, WORLD_MAX_X - half.x)
 
 	var desired: Vector2 = (target - global_position) / state.step
 	var desired_speed_sq: float = desired.length_squared()

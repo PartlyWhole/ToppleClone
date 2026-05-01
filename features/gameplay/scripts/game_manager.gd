@@ -177,7 +177,7 @@ func _scan_tower() -> void:
 		var block: DraggableBlock = child as DraggableBlock
 		if not is_instance_valid(block):
 			continue
-		if block.position.y > GameplayController.PLATFORM_SURFACE_Y + DROP_THRESHOLD_Y:
+		if _is_out_of_bounds(block):
 			blocks_to_remove.append(block)
 			continue
 		if not block.is_placed:
@@ -213,3 +213,13 @@ func _freeze_all_blocks() -> void:
 			var block: DraggableBlock = child as DraggableBlock
 			block.freeze = true
 			block.input_pickable = false
+
+
+func _is_out_of_bounds(block: DraggableBlock) -> bool:
+	var margin: float = GameplayController.OUT_OF_BOUNDS_MARGIN
+	var pos: Vector2 = block.position
+	if pos.y > GameplayController.PLATFORM_SURFACE_Y + margin:
+		return true
+	if pos.x < -margin or pos.x > GameplayController.VIEWPORT_SIZE.x + margin:
+		return true
+	return false
