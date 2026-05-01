@@ -35,6 +35,8 @@ func _ready() -> void:
 	assert(_restart_button != null, "RestartButton not found")
 
 	_heart_labels = [_heart_1, _heart_2, _heart_3, _heart_4]
+	for heart: Label in _heart_labels:
+		heart.text = "●"
 	_start_button.visible = false
 	_create_level_label()
 	_create_start_panel()
@@ -137,7 +139,7 @@ func _create_start_panel() -> void:
 	var instructions: Array[String] = [
 		"Drag blocks onto the platform",
 		"Stack them to reach the goal line",
-		"Blocks that fall off cost 1 HP",
+		"Blocks that fall off cost 1 ● (HP)",
 		"Beat the clock to advance!",
 	]
 	for line: String in instructions:
