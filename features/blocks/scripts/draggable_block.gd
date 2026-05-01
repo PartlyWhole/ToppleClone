@@ -30,7 +30,6 @@ const SETTLE_TIME: float = 0.3
 
 var shape_type: StringName = &""
 var is_placed: bool = false
-var drag_ceiling_y: float = -INF
 var _bounding_size: Vector2 = Vector2(60.0, 60.0)
 var _is_dragging: bool = false
 var _is_released: bool = false
@@ -94,9 +93,6 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		return
 
 	var target: Vector2 = get_global_mouse_position() + _drag_offset
-	var half_h: float = _bounding_size.y / 2.0
-	if drag_ceiling_y > -INF:
-		target.y = maxf(target.y, drag_ceiling_y + half_h)
 
 	var desired: Vector2 = (target - global_position) / state.step
 	var desired_speed_sq: float = desired.length_squared()

@@ -153,7 +153,6 @@ func _spawn_block() -> void:
 	block.freeze = true
 	block.gravity_scale = 0.0
 	block.collision_mask = 0
-	block.drag_ceiling_y = spawn_y
 	block.drag_started.connect(_on_new_block_dragged.bind(block), CONNECT_ONE_SHOT)
 	_current_block = block
 	_block_container.add_child(block)
