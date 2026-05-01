@@ -93,11 +93,13 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		return
 
 	var target: Vector2 = get_global_mouse_position() + _drag_offset
+	var distance: float = target.distance_to(global_position)
+	var speed_limit: float = max_drag_speed + distance * 2.0
 
 	var desired: Vector2 = (target - global_position) / state.step
 	var desired_speed_sq: float = desired.length_squared()
-	if desired_speed_sq > max_drag_speed * max_drag_speed:
-		desired = desired * (max_drag_speed / sqrt(desired_speed_sq))
+	if desired_speed_sq > speed_limit * speed_limit:
+		desired = desired * (speed_limit / sqrt(desired_speed_sq))
 
 	for i: int in state.get_contact_count():
 		var normal: Vector2 = state.get_contact_local_normal(i)
