@@ -2,8 +2,7 @@ class_name GameCamera
 extends Camera2D
 
 @export var smooth_speed: float = 3.0
-@export var look_ahead: float = 200.0
-@export var bottom_margin: float = 100.0
+@export var bottom_padding: float = 120.0
 
 var _target_y: float = 0.0
 var _initial_y: float = 0.0
@@ -12,10 +11,9 @@ var _viewport_half_h: float = 0.0
 
 func _ready() -> void:
 	assert(smooth_speed > 0.0, "smooth_speed must be positive")
-	assert(look_ahead >= 0.0, "look_ahead must be non-negative")
 	set_process(false)
 	_viewport_half_h = get_viewport_rect().size.y / 2.0
-	_initial_y = GameplayController.PLATFORM_SURFACE_Y - _viewport_half_h + bottom_margin
+	_initial_y = GameplayController.PLATFORM_SURFACE_Y - _viewport_half_h + bottom_padding
 	_target_y = _initial_y
 	position = Vector2(get_viewport_rect().size.x / 2.0, _initial_y)
 	enabled = true
@@ -25,8 +23,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var goal_y: float = _target_y - look_ahead
-	goal_y = minf(goal_y, _initial_y)
+	var goal_y: float = minf(_target_y, _initial_y)
 	position.y = lerpf(position.y, goal_y, smooth_speed * delta)
 
 
