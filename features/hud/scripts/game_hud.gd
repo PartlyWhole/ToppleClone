@@ -1,7 +1,10 @@
 class_name GameHUD
 extends CanvasLayer
 
-var _heart_labels: Array[Label] = []
+const HEART_RADIUS: float = 12.0
+const HEART_SEGMENTS: int = 24
+
+var _heart_pips: Array[Control] = []
 var _is_win: bool = false
 var _level_label: Label = null
 var _start_panel: PanelContainer = null
@@ -34,9 +37,12 @@ func _ready() -> void:
 	assert(_high_score_label != null, "HighScoreLabel not found")
 	assert(_restart_button != null, "RestartButton not found")
 
-	_heart_labels = [_heart_1, _heart_2, _heart_3, _heart_4]
-	for heart: Label in _heart_labels:
-		heart.text = "●"
+	var heart_labels: Array[Label] = [_heart_1, _heart_2, _heart_3, _heart_4]
+	for heart: Label in heart_labels:
+		heart.text = ""
+		var pip: Control = _create_pip()
+		heart.add_child(pip)
+		_heart_pips.append(pip)
 	_start_button.visible = false
 	_create_level_label()
 	_create_start_panel()
@@ -62,8 +68,8 @@ func _show_menu() -> void:
 	_timer_label.text = "01:00"
 	_timer_label.modulate = Color.WHITE
 	_score_label.text = "0"
-	for heart: Label in _heart_labels:
-		heart.modulate = Color.RED
+	for pip: Control in _heart_pips:
+		pip.modulate = Color.RED
 
 
 func _create_level_label() -> void:
@@ -139,7 +145,7 @@ func _create_start_panel() -> void:
 	var instructions: Array[String] = [
 		"Drag blocks onto the platform",
 		"Stack them to reach the goal line",
-		"Blocks that fall off cost 1 ● (HP)",
+		"Blocks that fall off cost a life",
 		"Beat the clock to advance!",
 	]
 	for line: String in instructions:
@@ -218,11 +224,11 @@ func _on_level_changed(level: int, _target_height: float) -> void:
 
 
 func _on_hp_changed(new_hp: int) -> void:
-	for i: int in range(_heart_labels.size()):
+	for i: int in range(_heart_pips.size()):
 		if i < new_hp:
-			_heart_labels[i].modulate = Color.RED
+			_heart_pips[i].modulate = Color.RED
 		else:
-			_heart_labels[i].modulate = Color.DIM_GRAY
+			_heart_pips[i].modulate = Color.DIM_GRAY
 
 
 func _on_timer_updated(time_remaining: float) -> void:
@@ -259,3 +265,43 @@ func _on_game_restarted() -> void:
 	if menu_hs != null:
 		menu_hs.text = "Best: %d" % GameState.high_score
 	_show_menu()
+
+
+func _create_pip() -> Control:
+	var pip: HeartPip = HeartPip.new()
+	pip.radius = HEART_RADIUS
+	pip.segments = HEART_SEGMENTS
+	pip.custom_minimum_size = Vector2(HEART_RADIUS * 2.0, HEART_RADIUS * 2.0)
+	pip.size = pip.custom_minimum_size
+	pip.position = Vector2(2.0, 6.0)
+	return pip
+
+
+static func _get_heart_points(radius: float, segments: int) -> PackedVector2Array:
+	var points: PackedVector2Array = PackedVector2Array()
+	for i: int in range(segments + 1):
+		var t: float = TAU * float(i) / float(segments)
+		var raw_x: float = 16.0 * pow(sin(t), 3)
+		var raw_y: float = (
+			13.0 * cos(t)
+			- 5.0 * cos(2.0 * t)
+			- 2.0 * cos(3.0 * t)
+			- cos(4.0 * t)
+		)
+		points.append(Vector2(raw_x / 16.0, -raw_y / 16.0) * radius)
+	return points
+
+
+class HeartPip:
+	extends Control
+
+	var radius: float = 12.0
+	var segments: int = 24
+
+	func _draw() -> void:
+		var center: Vector2 = size / 2.0 + Vector2(0.0, radius * 0.1)
+		var points: PackedVector2Array = GameHUD._get_heart_points(radius, segments)
+		var offset_points: PackedVector2Array = PackedVector2Array()
+		for p: Vector2 in points:
+			offset_points.append(p + center)
+		draw_colored_polygon(offset_points, Color.WHITE)
