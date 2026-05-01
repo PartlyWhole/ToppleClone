@@ -84,11 +84,13 @@ func _on_next_level_pressed() -> void:
 
 
 func _start_round() -> void:
+	_clear_blocks()
 	_hp = MAX_HP
 	_time_remaining = ROUND_TIME
 	_last_displayed_seconds = -1
 	_scan_timer = 0.0
 	_tower_height = 0.0
+	_camera.reset()
 	_transition_to(State.PLAYING)
 	Events.level_changed.emit(_level, _get_level_target())
 	Events.game_started.emit()
@@ -116,13 +118,7 @@ func _transition_to(new_state: State) -> void:
 
 func _restart() -> void:
 	_transition_to(State.RESTARTING)
-	for child: Node in _block_container.get_children():
-		if child is DraggableBlock:
-			var block: DraggableBlock = child as DraggableBlock
-			block.input_pickable = false
-			block.set_process_unhandled_input(false)
-		child.queue_free()
-	_current_block = null
+	_clear_blocks()
 	_level = 1
 	_tower_height = 0.0
 	Events.game_restarted.emit()
@@ -213,6 +209,16 @@ func _freeze_all_blocks() -> void:
 			var block: DraggableBlock = child as DraggableBlock
 			block.freeze = true
 			block.input_pickable = false
+
+
+func _clear_blocks() -> void:
+	for child: Node in _block_container.get_children():
+		if child is DraggableBlock:
+			var block: DraggableBlock = child as DraggableBlock
+			block.input_pickable = false
+			block.set_process_unhandled_input(false)
+		child.queue_free()
+	_current_block = null
 
 
 func _is_out_of_bounds(block: DraggableBlock) -> bool:
